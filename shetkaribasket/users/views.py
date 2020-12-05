@@ -22,26 +22,23 @@ def signin(request):
     if request.method != 'POST':
         return JsonResponse({"ERR": "Only POST method allowed"})
 
-    username = request.POST['email']
+    username = request.POST['phone']
     password = request.POST['password']
-
-    if re.match("//\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b/gi", username):
-        return JsonResponse({"ERR": "Enter a valid email."})
 
     if len(password) < 4:
         return JsonResponse({"ERR": "Password must be longer than 4 characters"})
 
     usermodel = get_user_model()
     try:
-        user = usermodel.objects.get(email=username)
+        user = usermodel.objects.get(phone=username)
         if user.check_password(password):
-            user_dict = usermodel.objects.filter(email=username).values().first()
+            user_dict = usermodel.objects.filter(phone=int(username)).values().first()
             user_dict.pop('password')
 
-            if user.auth_token != "0":
-                user.auth_token = "0"
-                user.save()
-                return JsonResponse({"ERR": "Previous session exists"})
+            # if user.auth_token != "0":
+            #     user.auth_token = "0"
+            #     user.save()
+            #     return JsonResponse({"ERR": "Previous session exists"})
 
             token = generate_token()
             user.auth_token = token
@@ -71,8 +68,8 @@ def signout(request, id):
         user.save()
         logout(request)
     except UserModel.DoesNotExist:
-        return JsonResponse({'error':'Invalid User id'})
-    return JsonResponse({'INFO':'Logged out successfully'})
+        return JsonResponse({'error': 'Invalid User id'})
+    return JsonResponse({'INFO': 'Logged out successfully'})
 
 
 @csrf_exempt

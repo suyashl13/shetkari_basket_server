@@ -14,4 +14,4 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.name + " (" + str(self.phone) + ")"
+        return f"{self.name} ({str(self.phone)})"
