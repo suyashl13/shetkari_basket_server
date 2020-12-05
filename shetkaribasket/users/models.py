@@ -8,10 +8,11 @@ class CustomUser(AbstractUser):
     name = models.CharField(max_length=38)
     email = models.EmailField(max_length=200, unique=True)
     phone = models.IntegerField(unique=True)
+    address = models.TextField(max_length=255, default="")
 
     USERNAME_FIELD = 'phone'
     auth_token = models.CharField(max_length=10)
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['address']
 
     def __str__(self):
         return f"{self.name} ({str(self.phone)})"

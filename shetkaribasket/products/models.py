@@ -14,4 +14,4 @@ class Product(models.Model):
     product_image = models.ImageField(upload_to='products/', default="")
 
     def __str__(self):
-        return f"{self.name} (Rs.{self.price})"
+        return f"{self.name} (Rs.{self.price}) (ID : {self.pk})"
