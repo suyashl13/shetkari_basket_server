@@ -131,3 +131,37 @@ def cancel_cart(request, cart_id, u_id, token):
 
     except:
         return JsonResponse({"ERR": "Internal server error"}, status=500)
+
+
+@csrf_exempt
+def create_cart(request, u_id, token):
+    if request.method != "POST":
+        return JsonResponse({'ERR': "Only POST requests are allowed here"}, status=400)
+
+    subtotal = request.POST['subtotal']
+
+    try:
+        subtotal = int(subtotal)
+        subtotal = str(subtotal)
+    except:
+        return JsonResponse({"ERR": "subtotal must be integer"}, status=400)
+
+    # Validate User.
+    try:
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=u_id)
+        if user.auth_token != token:
+            return JsonResponse({"ERR": "Invalid auth token"}, status=403)
+    except:
+        return JsonResponse({"ERR": "Invalid user"}, status=404)
+
+    try:
+        cart = Cart()
+        cart.user_owner = user
+        cart.subtotal = subtotal
+        cart.user_address = user.address
+        cart.save()
+        print(user.address)
+        return JsonResponse(CartSerializer(cart).data)
+    except:
+        return JsonResponse({'ERR': "Unable to create cart"}, status=500)

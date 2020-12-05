@@ -9,7 +9,7 @@ class Cart(models.Model):
     user_address = models.TextField(max_length=255, default="")
     date_time_created = models.DateTimeField(auto_now=True)
     date_time_updated = models.DateTimeField(auto_now_add=True)
-    payment_method = models.CharField(max_length=20, default="")
+    payment_method = models.CharField(max_length=20, default="", null=True, blank=True)
     subtotal = models.CharField(max_length=4, default="")
 
     def __str__(self):
