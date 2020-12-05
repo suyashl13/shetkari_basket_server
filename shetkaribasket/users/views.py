@@ -87,3 +87,18 @@ def get_current_user(request):
             return JsonResponse({"ERR": "Invalid User"})
     else:
         return JsonResponse({"ERR": "Only GET request allowed"})
+
+@csrf_exempt
+def check_token(request, u_id, token):
+    if request.method != "GET":
+        return JsonResponse({"ERR" : "Only POST request allowed"})
+
+    try:
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=u_id)
+        if user.auth_token != token:
+            return JsonResponse({"INFO": "Invalid token", 'result': False})
+        else:
+            return JsonResponse({"INFO": "Valid token", 'result': True})
+    except:
+        return JsonResponse({"ERR": "Invalid user"}, status=404)
