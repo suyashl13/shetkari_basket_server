@@ -8,7 +8,7 @@ from datetime import datetime
 
 # Create your views here.
 @csrf_exempt
-def get_user_carts(request, u_id, token):
+def get_all_user_carts(request, u_id, token):
     if request.method != "GET":
         return JsonResponse({'ERR': "Only get requests are allowed here"}, status=400)
 
@@ -58,7 +58,7 @@ def make_order(request, u_id, token):
     try:
         cart = Cart.objects.get(pk=cart_id)
         if cart.user_owner != user:
-            return JsonResponse({"ERR": "This cart belongs to another user"}, status=400)
+            return JsonResponse({"ERR": "This cart belongs to another user"}, status=403)
     except:
         return JsonResponse({"ERR": "Cart does not exist."}, status=404)
 
@@ -70,7 +70,9 @@ def make_order(request, u_id, token):
 
     try:
         order = Order()
+        order.cost = product.price
         order.quantity = str(qunt)
+        order.amount = product.price * qunt
         order.cart = cart
         order.product = product
         order.user = user
@@ -78,7 +80,21 @@ def make_order(request, u_id, token):
         order.order_status = "Assigned"
         order.save()
         serializer = OrderSerializer(order)
+        try:
+            query = Order.objects.filter(cart=cart)
+            query_dict = OrderSerializer(query, many=True).data
+            subtotal = 0
+            for i in query_dict:
+                temp_amount = i['amount']
+                subtotal += int(temp_amount)
+            print(subtotal)
+            cart.subtotal = str(subtotal)
+            cart.save()
+            return JsonResponse(serializer.data, status=200)
+        except:
+            return JsonResponse({'ERR' : "Something went wrong"}, status=500)
         return JsonResponse(serializer.data, status=200)
+
     except:
         return JsonResponse({"ERR": "Unable to place order"}, status=500)
 
@@ -135,16 +151,8 @@ def cancel_cart(request, cart_id, u_id, token):
 
 @csrf_exempt
 def create_cart(request, u_id, token):
-    if request.method != "POST":
-        return JsonResponse({'ERR': "Only POST requests are allowed here"}, status=400)
-
-    subtotal = request.POST['subtotal']
-
-    try:
-        subtotal = int(subtotal)
-        subtotal = str(subtotal)
-    except:
-        return JsonResponse({"ERR": "subtotal must be integer"}, status=400)
+    if request.method != "GET":
+        return JsonResponse({'ERR': "Only GET requests are allowed here"}, status=400)
 
     # Validate User.
     try:
@@ -158,10 +166,42 @@ def create_cart(request, u_id, token):
     try:
         cart = Cart()
         cart.user_owner = user
-        cart.subtotal = subtotal
+        cart.subtotal = "0"
+        cart.payment_method = "Unassigned"
         cart.user_address = user.address
         cart.save()
         print(user.address)
         return JsonResponse(CartSerializer(cart).data)
     except:
-        return JsonResponse({'ERR': "Unable to create cart"}, status=500)
+        return JsonResponse({'ERR': "Internal server error"}, status=500)
+
+
+@csrf_exempt
+def get_user_cart_with_orders(request, cart_id, u_id, token):
+    if request.method != 'GET':
+        return JsonResponse({'ERR': "Only GET requests are allowed"}, status=400)
+
+    # Validate User.
+    try:
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=u_id)
+        if user.auth_token != token:
+            return JsonResponse({"ERR": "Invalid auth token"}, status=403)
+    except:
+        return JsonResponse({"ERR": "Invalid user"}, status=404)
+
+    # Check cart ownership
+    try:
+        cart = Cart.objects.get(pk=cart_id)
+        if cart.user_owner != user:
+            return JsonResponse({'ERR': "Only owners can get the cart."}, status=403)
+    except:
+        return JsonResponse({'ERR': f"Cart with id {cart_id} not found"}, status=404)
+
+    # Get cart orders
+    try:
+        orders = Order.objects.filter(cart=cart)
+        serializer = OrderSerializer(orders, many=True)
+        return JsonResponse(serializer.data, status=200, safe=False)
+    except:
+        return JsonResponse({'ERR': "Internal server error."}, status=500)

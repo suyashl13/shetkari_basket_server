@@ -4,11 +4,9 @@ from django.contrib.auth import login, logout
 from django.http.response import JsonResponse
 import random
 import string
-import re
 from rest_framework.permissions import AllowAny
 from rest_framework import viewsets
 from django.views.decorators.csrf import csrf_exempt
-from .models import CustomUser
 from .serializer import UserSerializers
 
 
@@ -25,8 +23,14 @@ def signin(request):
     username = request.POST['phone']
     password = request.POST['password']
 
+    try:
+        username = int(username)
+        username = str(username)
+    except:
+        return JsonResponse({'ERR':'Phone no. should be number.'}, status=400)
+
     if len(password) < 4:
-        return JsonResponse({"ERR": "Password must be longer than 4 characters"})
+        return JsonResponse({"ERR": "Password must be longer than 4 characters"}, status=400)
 
     usermodel = get_user_model()
     try:
@@ -68,7 +72,7 @@ def signout(request, id):
         user.save()
         logout(request)
     except UserModel.DoesNotExist:
-        return JsonResponse({'error': 'Invalid User id'})
+        return JsonResponse({'error': 'Invalid User id'}, status=404)
     return JsonResponse({'INFO': 'Logged out successfully'})
 
 
@@ -84,14 +88,15 @@ def get_current_user(request):
             serializer = UserSerializers(usr)
             return JsonResponse(serializer.data)
         except UserModel.DoesNotExist:
-            return JsonResponse({"ERR": "Invalid User"})
+            return JsonResponse({"ERR": "Invalid User"}, status=404)
     else:
-        return JsonResponse({"ERR": "Only GET request allowed"})
+        return JsonResponse({"ERR": "Only GET request allowed"}, status=400)
+
 
 @csrf_exempt
 def check_token(request, u_id, token):
     if request.method != "GET":
-        return JsonResponse({"ERR" : "Only POST request allowed"})
+        return JsonResponse({"ERR": "Only POST request allowed"},status=400)
 
     try:
         UserModel = get_user_model()
