@@ -15,6 +15,7 @@ def get_all_products(request):
     serializer = ProductSerializer(products, many=True, context={'request': request})
     return JsonResponse(serializer.data, safe=False)
 
+
 @csrf_exempt
 def discounted_products(request):
     if request.method != "GET":

@@ -93,7 +93,6 @@ def make_order(request, u_id, token):
             return JsonResponse(serializer.data, status=200)
         except:
             return JsonResponse({'ERR' : "Something went wrong"}, status=500)
-        return JsonResponse(serializer.data, status=200)
 
     except:
         return JsonResponse({"ERR": "Unable to place order"}, status=500)
