@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'shetkaribasket.orders',
     'shetkaribasket.announcements',
     'shetkaribasket.staffsection',
+    'shetkaribasket.adminanalytics',
 ]
 
 MIDDLEWARE = [

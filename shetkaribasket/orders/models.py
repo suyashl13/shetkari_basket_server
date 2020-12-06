@@ -13,6 +13,8 @@ class Cart(models.Model):
 
     date_time_created = models.DateTimeField(auto_now=True)
     date_time_updated = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateField(auto_now=True)
+
     payment_method = models.CharField(max_length=20, default="")
     subtotal = models.CharField(max_length=4, default="")
     order_status = models.CharField(max_length=12, default='Assigned')

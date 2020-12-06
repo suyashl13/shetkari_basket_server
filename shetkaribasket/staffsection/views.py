@@ -35,6 +35,7 @@ def process_undelivered_orders(request, u_id, token):
         try:
             cart = Cart.objects.get(pk=id)
             cart.is_delivered = is_delivered
+            cart.order_status = "Delivered"
             cart.payment_method = payment_method
             cart.delivered_by = user
             cart.save()

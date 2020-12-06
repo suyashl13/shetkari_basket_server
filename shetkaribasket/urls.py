@@ -7,5 +7,6 @@ urlpatterns = [
     path('products/', include('shetkaribasket.products.urls')),
     path('orders/', include('shetkaribasket.orders.urls')),
     path('announcements/', include('shetkaribasket.announcements.urls')),
-    path('staffsection/', include('shetkaribasket.staffsection.urls'))
+    path('staffsection/', include('shetkaribasket.staffsection.urls')),
+    path('adminanalytics/', include('shetkaribasket.adminanalytics.urls')),
 ]
