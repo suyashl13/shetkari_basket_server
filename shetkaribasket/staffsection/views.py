@@ -27,7 +27,7 @@ def process_undelivered_orders(request, u_id, token):
         id = request.POST['cart_id']
         payment_method = request.POST['payment_method']
         is_delivered = request.POST['is_delivered']
-        if is_delivered == "true":
+        if is_delivered.lower() == "true":
             is_delivered = True
         else:
             is_delivered = False

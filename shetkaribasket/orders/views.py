@@ -48,7 +48,7 @@ def make_order(request, u_id, token):
     product_quantity = request.POST['quantity']
 
     try:
-        qunt = int(product_quantity)
+        qunt = float(product_quantity)
         if qunt > 9:
             return JsonResponse({"ERR": "Quantity should be an integer between 1 to 9"}, status=400)
     except:
@@ -72,7 +72,7 @@ def make_order(request, u_id, token):
         order = Order()
         order.cost = product.price
         order.quantity = str(qunt)
-        order.amount = product.price * qunt
+        order.amount = int(product.price * qunt)
         order.cart = cart
         order.product = product
         order.user = user

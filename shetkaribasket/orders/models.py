@@ -36,4 +36,4 @@ class Order(models.Model):
     date_time_updated = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.name} (ORDER ID : {self.pk})"
+        return f"ORDER ID : {self.pk} (BY : {self.user.name})"

@@ -30,3 +30,13 @@ def discounted_products(request):
             discounted_products_list.append(item)
 
     return JsonResponse(discounted_products_list, safe=False)
+
+
+@csrf_exempt
+def search_products(request, p_name):
+    if request.method != "GET":
+        return JsonResponse({"ERR": "Only get requests are allowed on this route"}, status=400)
+
+    products = Product.objects.filter(name__contains=p_name)
+    serializer = ProductSerializer(products, many=True, context={'request': request})
+    return JsonResponse(serializer.data, safe=False)

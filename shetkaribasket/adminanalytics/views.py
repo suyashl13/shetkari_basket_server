@@ -115,6 +115,11 @@ def get_undelivered_orders(request, u_id, token):
             orders = Order.objects.filter(cart=undelivered_cart)
             for order in orders:
                 order_dict = dict(OrderSerializer(order).data)
+                order_dict['product_name'] = order.product.name
+                order_dict['address'] = order.user.address
+                order_dict['name'] = order.user.name
+                order_dict['phone'] = order.user.phone
+                order_dict['is_delivered'] = order.cart.is_delivered
                 undelivered_orders.append(order_dict)
         return JsonResponse(undelivered_orders, status=200, safe=False)
     except:
@@ -136,7 +141,7 @@ def get_total_sales(request, u_id, token):
         return JsonResponse({"ERR": "Invalid user"}, status=404)
 
     try:
-        cart_query = Cart.objects.all()
+        cart_query = Cart.objects.filter(is_delivered=True)
         carts = CartSerializer(cart_query, many=True).data
 
         total_sales = 0
@@ -156,3 +161,35 @@ def get_total_sales(request, u_id, token):
                              'to_deliver_cost': to_deliver_cost}, status=200)
     except:
         return JsonResponse({"ERR": "Internal server error"}, status=500)
+
+
+def get_all_orders(request, u_id, token):
+    if request.method != 'GET':
+        return JsonResponse({'ERR': "Only GET requests are allowed on this route."}, status=400)
+
+    try:
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=u_id)
+        if user.auth_token != token:
+            return JsonResponse({"ERR": "Only users can see their orders"}, status=403)
+        if user.is_superuser != True:
+            return JsonResponse({"ERR": "Only superusers can access this route"}, status=403)
+    except:
+        return JsonResponse({"ERR": "Invalid user"}, status=404)
+
+    try:
+        all_orders = []
+        all_carts = Cart.objects.all()
+        for undelivered_cart in all_carts:
+            orders = Order.objects.filter(cart=undelivered_cart)
+            for order in orders:
+                order_dict = dict(OrderSerializer(order).data)
+                order_dict['product_name'] = order.product.name
+                order_dict['phone'] = order.user.phone
+                order_dict['address'] = order.user.address
+                order_dict['name'] = order.user.name
+                order_dict['is_delivered'] = order.cart.is_delivered
+                all_orders.append(order_dict)
+        return JsonResponse(all_orders, status=200, safe=False)
+    except:
+        return JsonResponse({'Internal server error'}, status=500)
