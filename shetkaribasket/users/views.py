@@ -27,7 +27,7 @@ def signin(request):
         username = int(username)
         username = str(username)
     except:
-        return JsonResponse({'ERR':'Phone no. should be number.'}, status=400)
+        return JsonResponse({'ERR': 'Phone no. should be number.'}, status=400)
 
     if len(password) < 4:
         return JsonResponse({"ERR": "Password must be longer than 4 characters"}, status=400)
@@ -96,7 +96,7 @@ def get_current_user(request):
 @csrf_exempt
 def check_token(request, u_id, token):
     if request.method != "GET":
-        return JsonResponse({"ERR": "Only POST request allowed"},status=400)
+        return JsonResponse({"ERR": "Only POST request allowed"}, status=400)
 
     try:
         UserModel = get_user_model()
@@ -107,3 +107,15 @@ def check_token(request, u_id, token):
             return JsonResponse({"INFO": "Valid token", 'result': True})
     except:
         return JsonResponse({"ERR": "Invalid user"}, status=404)
+
+
+def check_user(request, phone_number):
+    if request.method != "GET":
+        return JsonResponse({"ERR": "Only POST request allowed"}, status=400)
+
+    try:
+        UserModel = get_user_model()
+        user = UserModel.objects.get(phone=phone_number)
+        return JsonResponse({'exists': True})
+    except:
+        return JsonResponse({'exists': False}, status=404)

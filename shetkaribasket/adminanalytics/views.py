@@ -69,7 +69,7 @@ def signout(request, id):
 
 @csrf_exempt
 def get_todays_orders(request, u_id, token):
-    if request != 'GET':
+    if request.method != 'GET':
         return JsonResponse({'ERR': "Only GET requests are allowed on this route."}, status=400)
 
     # User Validation
@@ -86,7 +86,19 @@ def get_todays_orders(request, u_id, token):
     try:
         print(date.today())
         queryset = Cart.objects.filter(date_created=date.today())
-        return JsonResponse(CartSerializer(queryset, many=True).data, safe=False)
+        todays_orders = []
+        for undelivered_cart in queryset:
+            orders = Order.objects.filter(cart=undelivered_cart)
+            for order in orders:
+                order_dict = dict(OrderSerializer(order).data)
+                order_dict['cart_id'] = order.cart.id
+                order_dict['product_name'] = order.product.name
+                order_dict['address'] = order.user.address
+                order_dict['name'] = order.user.name
+                order_dict['phone'] = order.user.phone
+                order_dict['is_delivered'] = order.cart.is_delivered
+                todays_orders.append(order_dict)
+        return JsonResponse(todays_orders, status=200, safe=False)
     except:
         return JsonResponse({"ERR": "Internal server error"}, status=500)
 
@@ -115,6 +127,7 @@ def get_undelivered_orders(request, u_id, token):
             orders = Order.objects.filter(cart=undelivered_cart)
             for order in orders:
                 order_dict = dict(OrderSerializer(order).data)
+                order_dict['cart_id'] = order.cart.id
                 order_dict['product_name'] = order.product.name
                 order_dict['address'] = order.user.address
                 order_dict['name'] = order.user.name
@@ -184,6 +197,7 @@ def get_all_orders(request, u_id, token):
             orders = Order.objects.filter(cart=undelivered_cart)
             for order in orders:
                 order_dict = dict(OrderSerializer(order).data)
+                order_dict['cart_id'] = order.cart.id
                 order_dict['product_name'] = order.product.name
                 order_dict['phone'] = order.user.phone
                 order_dict['address'] = order.user.address
