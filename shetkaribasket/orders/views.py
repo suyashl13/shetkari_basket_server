@@ -130,7 +130,7 @@ def cancel_cart(request, cart_id, u_id, token):
     if now_time.date() != ordered_time.date():
         return JsonResponse({"ERR": "Order can be canceled within a same day."}, status=400)
 
-    if now_time.hour > 17:
+    if now_time.hour > 19:
         return JsonResponse({"ERR": "Order can be canceled before 7 PM"}, status=400)
 
     if ordered_time.hour + 8 < now_time.hour:
@@ -166,7 +166,7 @@ def create_cart(request, u_id, token):
         cart = Cart()
         cart.user_owner = user
         cart.subtotal = "0"
-        cart.payment_method = "Unassigned"
+        cart.payment_method = "Pending"
         cart.user_address = user.address
         cart.save()
         print(user.address)
@@ -200,7 +200,13 @@ def get_user_cart_with_orders(request, cart_id, u_id, token):
     # Get cart orders
     try:
         orders = Order.objects.filter(cart=cart)
-        serializer = OrderSerializer(orders, many=True)
-        return JsonResponse(serializer.data, status=200, safe=False)
+
+        o_list = []
+        for order in orders:
+            ord = OrderSerializer(order).data
+            ord['product_name'] = order.product.name
+            ord['product_price'] = order.product.price
+            o_list.append(ord)
+        return JsonResponse(o_list, status=200, safe=False)
     except:
         return JsonResponse({'ERR': "Internal server error."}, status=500)

@@ -202,6 +202,7 @@ def get_all_orders(request, u_id, token):
                 order_dict['phone'] = order.user.phone
                 order_dict['address'] = order.user.address
                 order_dict['name'] = order.user.name
+                order_dict['payment_method'] = order.cart.payment_method
                 order_dict['is_delivered'] = order.cart.is_delivered
                 all_orders.append(order_dict)
         return JsonResponse(all_orders, status=200, safe=False)
