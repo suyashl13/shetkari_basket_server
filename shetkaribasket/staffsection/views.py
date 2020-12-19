@@ -3,6 +3,8 @@ from ..orders.models import Cart, Order
 from ..orders.serializer import CartSerializer, OrderSerializer
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model, logout, login
+from ..users.views import generate_token
 
 
 # Create your views here.
@@ -42,3 +44,49 @@ def process_undelivered_orders(request, u_id, token):
             return JsonResponse(CartSerializer(cart).data, status=200)
         except:
             return JsonResponse({'ERR': "Cart does not exists"}, status=404)
+
+
+@csrf_exempt
+def signin(request):
+    if request.method != 'POST':
+        return JsonResponse({"ERR": "Only POST method allowed"})
+
+    username = request.POST['phone']
+    password = request.POST['password']
+
+    try:
+        username = int(username)
+        username = str(username)
+    except:
+        return JsonResponse({'ERR': 'Phone no. should be number.'}, status=400)
+
+    if len(password) < 4:
+        return JsonResponse({"ERR": "Password must be longer than 4 characters"}, status=400)
+
+    usermodel = get_user_model()
+    try:
+        user = usermodel.objects.get(phone=username)
+
+        if user.is_staff == False:
+            return JsonResponse({'ERR': "Only staff users are allowed on this route."},status=400)
+
+        if user.check_password(password):
+            user_dict = usermodel.objects.filter(phone=int(username)).values().first()
+            user_dict.pop('password')
+
+            # if user.auth_token != "0":
+            #     user.auth_token = "0"
+            #     user.save()
+            #     return JsonResponse({"ERR": "Previous session exists"})
+
+            token = generate_token()
+            user.auth_token = token
+            user.save()
+            login(request, user)
+            return JsonResponse({'token': token, 'user': user_dict})
+        else:
+            return JsonResponse({
+                'ERR': 'Invalid login credentials.'
+            })
+    except usermodel.DoesNotExist:
+        return JsonResponse({"ERR": "Invalid user"})
