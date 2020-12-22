@@ -129,6 +129,7 @@ def get_undelivered_orders(request, u_id, token):
                 order_dict = dict(OrderSerializer(order).data)
                 order_dict['cart_id'] = order.cart.id
                 order_dict['product_name'] = order.product.name
+                order_dict['unit'] = order.product.unit
                 order_dict['address'] = order.user.address
                 order_dict['name'] = order.user.name
                 order_dict['phone'] = order.user.phone

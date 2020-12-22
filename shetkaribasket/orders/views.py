@@ -47,13 +47,6 @@ def make_order(request, u_id, token):
     product_id = request.POST['product_id']
     product_quantity = request.POST['quantity']
 
-    try:
-        qunt = float(product_quantity)
-        if qunt > 9:
-            return JsonResponse({"ERR": "Quantity should be an integer between 1 to 9"}, status=400)
-    except:
-        return JsonResponse({"ERR": "Quantity should be an integer"}, status=400)
-
     # Cart verification.
     try:
         cart = Cart.objects.get(pk=cart_id)
@@ -65,6 +58,13 @@ def make_order(request, u_id, token):
     # Product verification.
     try:
         product = Product.objects.get(pk=product_id)
+        try:
+            qunt = float(product_quantity)
+            if product.unit != 'Gram':
+                if qunt > 10:
+                    return JsonResponse({"ERR": "Quantity should be an integer between 1 to 9"}, status=400)
+        except:
+            return JsonResponse({"ERR": "Quantity should be an integer"}, status=400)
     except:
         return JsonResponse({"ERR": "Product does not exists."}, status=404)
 
@@ -72,7 +72,10 @@ def make_order(request, u_id, token):
         order = Order()
         order.cost = product.price
         order.quantity = str(qunt)
-        order.amount = int(product.price * qunt)
+        if product.unit == 'Gram':
+            order.amount = int(product.price * qunt / 250)
+        else:
+            order.amount = int(product.price * qunt)
         order.cart = cart
         order.product = product
         order.user = user
@@ -82,17 +85,16 @@ def make_order(request, u_id, token):
         serializer = OrderSerializer(order)
         try:
             query = Order.objects.filter(cart=cart)
-            query_dict = OrderSerializer(query, many=True).data
             subtotal = 0
-            for i in query_dict:
-                temp_amount = i['amount']
+            for i in query:
+                temp_amount = i.amount
                 subtotal += int(temp_amount)
             print(subtotal)
             cart.subtotal = str(subtotal)
             cart.save()
             return JsonResponse(serializer.data, status=200)
         except:
-            return JsonResponse({'ERR' : "Something went wrong"}, status=500)
+            return JsonResponse({'ERR': "Something went wrong"}, status=500)
 
     except:
         return JsonResponse({"ERR": "Unable to place order"}, status=500)
