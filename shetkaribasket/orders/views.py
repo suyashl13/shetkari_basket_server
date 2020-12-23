@@ -117,6 +117,8 @@ def cancel_cart(request, cart_id, u_id, token):
     # Ownership check
     try:
         cart = Cart.objects.get(pk=cart_id)
+        if cart.is_delivered:
+            return JsonResponse({"ERR": "Cart already delivered"}, status=400)
         if cart.user_owner != user:
             return JsonResponse({"ERR": "Only owners can cancel their cart"}, status=403)
     except:

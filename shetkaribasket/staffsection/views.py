@@ -90,3 +90,40 @@ def signin(request):
             })
     except usermodel.DoesNotExist:
         return JsonResponse({"ERR": "Invalid user"})
+
+
+def get_orders_by_cart_id(request, cart_id, u_id, token):
+    if request.method != 'GET':
+        return JsonResponse({'ERR': "Only GET requests are allowed"}, status=400)
+
+        # Validate User.
+    try:
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=u_id)
+        if user.auth_token != token:
+            return JsonResponse({"ERR": "Invalid auth token"}, status=403)
+
+        if not user.is_staff:
+            return JsonResponse({"ERR": "only staff is allowed"}, status=403)
+    except:
+        return JsonResponse({"ERR": "Invalid user"}, status=404)
+
+        # Check cart ownership
+    try:
+        cart = Cart.objects.get(pk=cart_id)
+    except:
+        return JsonResponse({'ERR': f"Cart with id {cart_id} not found"}, status=404)
+
+        # Get cart orders
+    try:
+        orders = Order.objects.filter(cart=cart)
+
+        o_list = []
+        for order in orders:
+            ord = OrderSerializer(order).data
+            ord['product_name'] = order.product.name
+            ord['product_price'] = order.product.price
+            o_list.append(ord)
+        return JsonResponse(o_list, status=200, safe=False)
+    except:
+        return JsonResponse({'ERR': "Internal server error."}, status=500)
