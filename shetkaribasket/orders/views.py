@@ -89,7 +89,6 @@ def make_order(request, u_id, token):
             for i in query:
                 temp_amount = i.amount
                 subtotal += int(temp_amount)
-            print(subtotal)
             cart.subtotal = str(subtotal)
             cart.save()
             return JsonResponse(serializer.data, status=200)
@@ -173,7 +172,6 @@ def create_cart(request, u_id, token):
         cart.payment_method = "Pending"
         cart.user_address = user.address
         cart.save()
-        print(user.address)
         return JsonResponse(CartSerializer(cart).data)
     except:
         return JsonResponse({'ERR': "Internal server error"}, status=500)
