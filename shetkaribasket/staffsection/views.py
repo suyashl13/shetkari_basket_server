@@ -122,6 +122,7 @@ def get_orders_by_cart_id(request, cart_id, u_id, token):
         for order in orders:
             ord = OrderSerializer(order).data
             ord['product_name'] = order.product.name
+            ord['name'] = order.user.name
             ord['product_price'] = order.product.price
             o_list.append(ord)
         return JsonResponse(o_list, status=200, safe=False)
