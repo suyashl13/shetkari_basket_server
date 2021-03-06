@@ -123,8 +123,10 @@ def get_orders_by_cart_id(request, cart_id, u_id, token):
             ord = OrderSerializer(order).data
             ord['product_name'] = order.product.name
             ord['name'] = order.user.name
+            ord['unit'] = order.product.unit
             ord['product_price'] = order.product.price
             o_list.append(ord)
         return JsonResponse(o_list, status=200, safe=False)
     except:
         return JsonResponse({'ERR': "Internal server error."}, status=500)
+

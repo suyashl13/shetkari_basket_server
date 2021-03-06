@@ -94,7 +94,7 @@ def get_todays_orders(request, u_id, token):
                 order_dict['cart_id'] = order.cart.id
                 order_dict['product_name'] = order.product.name
                 order_dict['address'] = order.user.address
-                order_dict['unit'] = order.product.unit
+		
                 order_dict['name'] = order.user.name
                 order_dict['phone'] = order.user.phone
                 order_dict['is_delivered'] = order.cart.is_delivered
@@ -133,7 +133,6 @@ def get_undelivered_orders(request, u_id, token):
                 order_dict['unit'] = order.product.unit
                 order_dict['address'] = order.user.address
                 order_dict['name'] = order.user.name
-                order_dict['unit'] = order.product.unit
                 order_dict['phone'] = order.user.phone
                 order_dict['is_delivered'] = order.cart.is_delivered
                 undelivered_orders.append(order_dict)
@@ -205,11 +204,9 @@ def get_all_orders(request, u_id, token):
                 order_dict['phone'] = order.user.phone
                 order_dict['address'] = order.user.address
                 order_dict['name'] = order.user.name
-                order_dict['unit'] = order.product.unit
                 order_dict['payment_method'] = order.cart.payment_method
                 order_dict['is_delivered'] = order.cart.is_delivered
                 all_orders.append(order_dict)
         return JsonResponse(all_orders, status=200, safe=False)
     except:
         return JsonResponse({'Internal server error'}, status=500)
-
