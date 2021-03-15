@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model, logout, login
 from ..users.views import generate_token
+from twilio.rest import Client
 
 
 # Create your views here.
@@ -41,6 +42,22 @@ def process_undelivered_orders(request, u_id, token):
             cart.payment_method = payment_method
             cart.delivered_by = user
             cart.save()
+            try:
+                account_sid = "AC16cbcdb22164d60fc03783c6b826fe3d"
+                auth_token = "9970bb96868946d212eb56817ef4fdc6"
+                client = Client(account_sid, auth_token)
+
+                msg = f"Hello {cart.user_owner.name}, your order of Rs.{cart.subtotal} " \
+                      f"is been delivered successfully. Thank you for choosing us. \n"
+                # f"Also give us a feedback at : https://review.shetkaribasket.in"
+                message = client.messages.create(
+                    body=msg,
+                    from_="+13234760651",
+                    to=f"+{cart.user_owner.phone}"
+                )
+                print(message.status)
+            except:
+                pass
             return JsonResponse(CartSerializer(cart).data, status=200)
         except:
             return JsonResponse({'ERR': "Cart does not exists"}, status=404)
@@ -68,7 +85,7 @@ def signin(request):
         user = usermodel.objects.get(phone=username)
 
         if user.is_staff == False:
-            return JsonResponse({'ERR': "Only staff users are allowed on this route."},status=400)
+            return JsonResponse({'ERR': "Only staff users are allowed on this route."}, status=400)
 
         if user.check_password(password):
             user_dict = usermodel.objects.filter(phone=int(username)).values().first()
