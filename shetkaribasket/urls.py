@@ -9,4 +9,5 @@ urlpatterns = [
     path('announcements/', include('shetkaribasket.announcements.urls')),
     path('staffsection/', include('shetkaribasket.staffsection.urls')),
     path('adminanalytics/', include('shetkaribasket.adminanalytics.urls')),
+    path('review/', include('shetkaribasket.review.urls')),
 ]
