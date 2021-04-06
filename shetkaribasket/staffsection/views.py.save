@@ -49,7 +49,7 @@ def process_undelivered_orders(request, u_id, token):
 
                 msg = f"Hello {cart.user_owner.name}, your order of Rs.{cart.subtotal} " \
                       f"is been delivered successfully. Thank you for choosing us. \n" \
-                f"Also give us a feedback at : https://review.shetkaribasket.in/{cart.id}"
+                      f"Also give us a feedback at : https://review.shetkaribasket.in/{cart.id}"
                 message = client.messages.create(
                     body=msg,
                     from_="+13234760651",
