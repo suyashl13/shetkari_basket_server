@@ -212,3 +212,29 @@ def get_user_cart_with_orders(request, cart_id, u_id, token):
         return JsonResponse(o_list, status=200, safe=False)
     except:
         return JsonResponse({'ERR': "Internal server error."}, status=500)
+
+
+def verify_cart_order(request, cart_id, u_id, token):
+    if request.method != 'GET':
+        return JsonResponse({'ERR': "Only GET requests are allowed"}, status=400)
+
+    # Validate User.
+    try:
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=u_id)
+        if user.auth_token != token:
+            return JsonResponse({"ERR": "Invalid auth token"}, status=403)
+    except:
+        return JsonResponse({"ERR": "Invalid user"}, status=404)
+
+    # Check cart ownership
+    try:
+        cart = Cart.objects.get(pk=cart_id)
+        if cart.user_owner != user:
+            return JsonResponse({'ERR': 'Unauthorized Action'}, status=401)
+        else:
+            cart.is_verified = True
+            cart.save()
+            return JsonResponse({'Success': 'Successfully verified cart.'}, status=200)
+    except Exception as e:
+        return JsonResponse({'ERR': f"Cart with id {cart_id} not found" + str(e)}, status=404)

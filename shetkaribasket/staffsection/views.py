@@ -1,7 +1,6 @@
 from django.http.response import JsonResponse
 from ..orders.models import Cart, Order
 from ..orders.serializer import CartSerializer, OrderSerializer
-from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model, logout, login
 from ..users.views import generate_token
@@ -16,15 +15,19 @@ def process_undelivered_orders(request, u_id, token):
         user = UserModel.objects.get(pk=u_id)
         if user.auth_token != token:
             return JsonResponse({"ERR": "Only users can see their orders"}, status=403)
-        if user.is_staff != True:
+        if not user.is_staff:
             return JsonResponse({"ERR": "Only employees can take orders data"}, status=403)
-    except:
-        return JsonResponse({"ERR": "Invalid user"}, status=404)
+    except Exception as e:
+        return JsonResponse({"ERR": "Invalid user" + str(e)}, status=404)
 
     if request.method == 'GET':
-        cart = Cart.objects.filter(is_delivered=False)
-        serializer = CartSerializer(cart, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        result = []
+        undelivered_carts = Cart.objects.all()
+        for undelivered_cart in undelivered_carts:
+            undelivered_cart_item = dict(CartSerializer(undelivered_cart).data)
+            if not undelivered_cart_item['is_verified']:
+                result.append(undelivered_cart_item)
+        return JsonResponse(result, safe=False)
 
     if request.method == 'POST':
         id = request.POST['cart_id']
@@ -49,7 +52,7 @@ def process_undelivered_orders(request, u_id, token):
 
                 msg = f"Hello {cart.user_owner.name}, your order of Rs.{cart.subtotal} " \
                       f"is been delivered successfully. Thank you for choosing us. \n" \
-                f"Also give us a feedback at : https://review.shetkaribasket.in/{cart.id}"
+                      f"Also give us a feedback at : https://review.shetkaribasket.in/{cart.id}"
                 message = client.messages.create(
                     body=msg,
                     from_="+13234760651",
@@ -84,7 +87,7 @@ def signin(request):
     try:
         user = usermodel.objects.get(phone=username)
 
-        if user.is_staff == False:
+        if not user.is_staff:
             return JsonResponse({'ERR': "Only staff users are allowed on this route."}, status=400)
 
         if user.check_password(password):
@@ -146,5 +149,3 @@ def get_orders_by_cart_id(request, cart_id, u_id, token):
         return JsonResponse(o_list, status=200, safe=False)
     except:
         return JsonResponse({'ERR': "Internal server error."}, status=500)
-
-

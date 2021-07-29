@@ -10,6 +10,7 @@ class Cart(models.Model):
 
     is_delivered = models.BooleanField(default=False)
     delivered_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='employee_who_delivered', blank=True, null=True)
+    is_verified = models.BooleanField(default=False)
 
     date_time_created = models.DateTimeField(auto_now=True)
     date_time_updated = models.DateTimeField(auto_now_add=True)
