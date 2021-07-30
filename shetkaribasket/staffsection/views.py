@@ -14,7 +14,7 @@ def process_undelivered_orders(request, u_id, token):
         UserModel = get_user_model()
         user = UserModel.objects.get(pk=u_id)
         if user.auth_token != token:
-            return JsonResponse({"ERR": "Only users can see their orders"}, status=403)
+            return JsonResponse({"ERR": "Session Expired."}, status=403)
         if not user.is_staff:
             return JsonResponse({"ERR": "Only employees can take orders data"}, status=403)
     except Exception as e:

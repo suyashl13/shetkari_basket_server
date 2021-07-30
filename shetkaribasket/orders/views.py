@@ -224,14 +224,16 @@ def verify_cart_order(request, cart_id, u_id, token):
         user = UserModel.objects.get(pk=u_id)
         if user.auth_token != token:
             return JsonResponse({"ERR": "Invalid auth token"}, status=403)
-    except:
-        return JsonResponse({"ERR": "Invalid user"}, status=404)
+    except Exception as e:
+        return JsonResponse({"ERR": str(e)}, status=404)
 
     # Check cart ownership
     try:
         cart = Cart.objects.get(pk=cart_id)
         if cart.user_owner != user:
             return JsonResponse({'ERR': 'Unauthorized Action'}, status=401)
+        elif not cart.is_delivered:
+            return JsonResponse({'ERR': 'Order not delivered yet.'}, status=401)
         else:
             cart.is_verified = True
             cart.save()
